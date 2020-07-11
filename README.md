@@ -9,3 +9,4 @@ Directory for project to sync local directory to s3
 Currently webtron has following Features
 1) List buckets using command list-buckets
 2) List objects in a bucket using command list-bucket-objects and option --bucket. If no bucket name is provided in option --bucket, content of all buckets are returned
+3) Create and setup a bucket
