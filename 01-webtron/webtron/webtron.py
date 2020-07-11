@@ -48,6 +48,10 @@ def setup_bucket(bucket):
             Bucket=bucket,
             CreateBucketConfiguration={'LocationConstraint':session.region_name}
         )
+        s3_bucket.upload_file('index.html',
+            'index.html',
+            ExtraArgs={'ContentType':'text/html'}
+            )
     except ClientError as e:
         if e.response['Error']['Code']=='BucketAlreadyOwnedByYou':
             s3_bucket=s3.Bucket(bucket)
@@ -82,7 +86,10 @@ def setup_bucket(bucket):
         }
     })
 
+    url="http://%s.s3-website.ap-southeast-2.amazonaws.com"%s3_bucket.name
+
     print(s3_bucket)
+    print("Access website in new bucket at "+url)
     return
 
 if __name__=='__main__':
