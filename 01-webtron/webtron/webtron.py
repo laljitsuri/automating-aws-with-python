@@ -9,15 +9,15 @@ Webtron automated the process of deploying static websites to AWS.
 - Deploy local files to buckets
 """
 
-from pathlib import Path
-import mimetypes
+
 import boto3
 import botocore
-from botocore.exceptions import ClientError
 import click
+from bucket import BucketManager
 
 
 session=boto3.Session(profile_name='pythonAutomation')
+bucket_manager = BucketManager(session)
 s3=session.resource('s3')
 
 
@@ -38,7 +38,7 @@ def cli():
 @cli.command('list-buckets')
 def list_buckets():
     """List all s3 buckets available in the account."""
-    for bucket in s3.buckets.all():
+    for bucket in bucket_manager.all_buckets():
         print(bucket)
 
 
@@ -46,15 +46,15 @@ def list_buckets():
 @click.option('--bucket',help='List objects for specific bucket with given name')
 def list_bucket_objects(bucket):
     """List objects in a given bucket."""
-    buckets=s3.buckets.all()
-    if bucket and s3.Bucket(name=bucket) in buckets:
-        print("Found bucket with given name "+s3.Bucket(bucket).name)
-        for obj in s3.Bucket(bucket).objects.all():
+    buckets=bucket_manager.all_buckets()
+    if bucket and bucket_manager.s3.Bucket(name=bucket) in buckets:
+        print("Found bucket with given name "+bucket_manager.s3.Bucket(bucket).name)
+        for obj in bucket_manager.all_objects(bucket):
             print(obj)
     else:
         for b in buckets:
             print("Objects in bucket: "+b.name+"\n")
-            for obj in b.objects.all():
+            for obj in bucket_manager.all_objects(b.name):
                 print(obj)
 
 
@@ -62,49 +62,11 @@ def list_bucket_objects(bucket):
 @click.argument('bucket')
 def setup_bucket(bucket):
     """Create and configure s3 bucket."""
-    s3_bucket=None
-    try:
-        s3_bucket=s3.create_bucket(
-            Bucket=bucket,
-            CreateBucketConfiguration={'LocationConstraint':session.region_name}
-        )
-        s3_bucket.upload_file('index.html',
-                              'index.html',
-                              ExtraArgs={'ContentType':'text/html'}
-            )
-    except ClientError as e:
-        if e.response['Error']['Code']=='BucketAlreadyOwnedByYou':
-            s3_bucket=s3.Bucket(bucket)
-        else:
-            raise e
+    s3_bucket=bucket_manager.init_bucket(bucket)
 
-    policy="""
-    {
-        "Version": "2012-10-17",
-        "Statement": [{
-        "Sid": "PublicReadGetObject",
-        "Effect": "Allow",
-        "Principal": "*",
-        "Action": [
-            "s3:GetObject"
-        ],
-        "Resource": [
-            "arn:aws:s3:::%s/*"
-        ]
-        }]
-    }
-    """%s3_bucket.name
-    policy=policy.strip()
+    bucket_manager.set_policy(s3_bucket)
 
-    pol=s3_bucket.Policy()
-    pol.put(Policy=policy)
-
-    ws=s3_bucket.Website()
-    ws.put(WebsiteConfiguration={
-        'ErrorDocument':{'Key':'error.html'},
-        'IndexDocument':{'Suffix':'index.html'
-        }
-    })
+    bucket_manager.configure_website(s3_bucket)
 
     url="http://%s.s3-website.ap-southeast-2.amazonaws.com"%s3_bucket.name
 
@@ -113,29 +75,13 @@ def setup_bucket(bucket):
     return
 
 
-def upload_file(s3_bucket,path,key):
-    """Upload file from given path in given bucket with given key."""
-    content_type=mimetypes.guess_type(key)[0] or 'text/plain'
-    s3_bucket.upload_file(path,
-                          key,
-                          ExtraArgs={'ContentType':content_type}
-    )
-
-
 @cli.command('sync')
 @click.argument('pathname',type=click.Path(exists=True))
 @click.argument('bucket')
 def sync(pathname,bucket):
     """Sync contents of PATHNAME to Bucket."""
-    s3_bucket=s3.Bucket(bucket)
-    root=Path(pathname).expanduser().resolve()
 
-    def handle_directory(target):
-        for p in target.iterdir():
-            if p.is_dir():handle_directory(p)
-            if p.is_file():upload_file(s3_bucket,str(p),str(p.relative_to(root)))
-
-    handle_directory(root)
+    bucket_manager.sync(pathname, bucket)
 
 
 if __name__=='__main__':
