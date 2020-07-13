@@ -11,3 +11,4 @@ Currently webtron has following Features
 2) List objects in a bucket using command list-bucket-objects and option --bucket. If no bucket name is provided in option --bucket, content of all buckets are returned
 3) Create and setup a bucket
 4) Sync directory tree from system for a given directory to given bucket in s3
+5) Set AWS profile with option --profile=<profile_name>

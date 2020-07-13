@@ -16,9 +16,9 @@ import click
 from bucket import BucketManager
 
 
-session=boto3.Session(profile_name='pythonAutomation')
-bucket_manager = BucketManager(session)
-s3=session.resource('s3')
+session = None
+bucket_manager = None
+s3 = None
 
 
 def create_bucket():
@@ -31,8 +31,20 @@ def create_bucket():
 
 
 @click.group()
-def cli():
+@click.option('--profile', default=None,
+    help = "Use given profile name.")
+def cli(profile):
     """Webtron deploys websites to s3 bucket."""
+    global session, bucket_manager, s3
+    session_cfg = {}
+    if profile:
+        session_cfg['profile_name'] = profile
+    else:
+        session_cfg['profile_name'] = 'pythonAutomation'
+
+    session=boto3.Session(**session_cfg)
+    bucket_manager = BucketManager(session)
+    s3=session.resource('s3')
 
 
 @cli.command('list-buckets')
