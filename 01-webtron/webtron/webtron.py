@@ -13,7 +13,7 @@ Webtron automated the process of deploying static websites to AWS.
 import boto3
 import botocore
 import click
-from bucket import BucketManager
+from webtron.bucket import BucketManager
 
 
 session = None
