@@ -56,6 +56,7 @@ sudo service httpd start
 control-D
 
 # Autoscaling commands
+import boto3
 session = boto3.Session(profile_name='pythonAutomation')
 as_client = session.client('autoscaling')
 as_client.describe_auto_scaling_groups
