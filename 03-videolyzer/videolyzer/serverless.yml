@@ -7,6 +7,30 @@ provider:
   region: ap-southeast-2
   deploymentBucket:
     name : laljit-videolyzer
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "rekognition:*"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject"
+      Resource:
+        - Fn::Join:
+          - ''
+          - - ${self:custom.videosBucketARN}
+            - '/*'
+
+custom:
+  videosBucketARN:
+    Fn::Join:
+      - ':'
+      - - arn
+        - aws
+        - s3
+        - ''
+        - ''
+        - ${file(../config.${self:provider.stage}.json):videolyzer.video_bucket}
 
 functions:
   startProcessingVideo:
