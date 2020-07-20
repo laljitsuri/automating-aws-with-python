@@ -29,3 +29,12 @@ rec.get('s3').get('bucket').get('name')
 rec.get('s3').get('object').get('key')
 import urllib.parse
 urllib.parse.unquote_plus(rec.get('s3').get('object').get('key'))
+
+#Sns event handling
+event={'Records': [{'EventSource': 'aws:sns', 'EventVersion': '1.0', 'EventSubscriptionArn': 'arn:aws:sns:ap-southeast-2:662733437530:handleLabelDetectionTopic:1459d453-ffef-4f02-96aa-1325aa995fe7', 'Sns': {'Type': 'Notification', 'MessageId': '9a861be2-5a80-5d38-a7e3-4c6d3e19fff2', 'TopicArn': 'arn:aws:sns:ap-southeast-2:662733437530:handleLabelDetectionTopic', 'Subject': None, 'Message': '{"JobId":"1398bd82d30a660c84b8f7273ed3964eb66b3f3aaa0db03ec6f51a4aaee584ea","Status":"SUCCEEDED","API":"StartLabelDetection","Timestamp":1595236952937,"Video":{"S3ObjectName":"production_ID_4426380.mp4","S3Bucket":"laljitvideoanalyzer"}}', 'Timestamp': '2020-07-20T09:22:33.243Z', 'SignatureVersion': '1', 'Signature': 'ayG3/QzJoAHIVJabe/gcnU11MTRqn5+gLWszmrsWzA2pw1L8fNlX977h0aam9axHk+P9EYLdg8L29MyFnIo/iHuEbEyhEpuTZp/+bl1bdlTC91ScMLR5/nY3yT/NlvG3o4bAKeyceHvaqBXlJkglExTkowUKMJBZySE4Zr9+CW7QAqVJylqH5835KKH3ZkKBsftIPh4PlUt4eHUbGHMBWL1wxgO7AwBYS8iOtmndnDA+gtxynpUYJSDGgjW0H0iIG9Z81yUtaptb+UiuaRL6IijizT3FVKVxbCwpacV98gXMwRTRvKif2JrNF+7nZnONF28MMZyNhysWw6AgdZLUhQ==', 'SigningCertUrl': 'https://sns.ap-southeast-2.amazonaws.com/SimpleNotificationService-a86cb10b4e1f29c941702d737128f7b6.pem', 'UnsubscribeUrl': 'https://sns.ap-southeast-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:ap-southeast-2:662733437530:handleLabelDetectionTopic:1459d453-ffef-4f02-96aa-1325aa995fe7', 'MessageAttributes': {}}}]}
+event.keys()
+rec = event.get('Records')[0]
+rec.keys()
+message=rec.get('Sns').get('Message')
+import json
+message_json=json.loads(message)
